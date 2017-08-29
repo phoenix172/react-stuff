@@ -6,14 +6,17 @@ export default class MemoryRow extends Component {
   static propTypes = {
     rowNumber: PropTypes.number.isRequired,
     squareSize: PropTypes.string.isRequired,
-    rowSize: PropTypes.number.isRequired
+    rowSize: PropTypes.number.isRequired,
+    selectedSquares: PropTypes.arrayOf(PropTypes.number),
+    chosenSquares: PropTypes.arrayOf(PropTypes.number)
   };
 
   generateSquare(column) {
     let square = {
       row: this.props.rowNumber,
       column: column,
-      size: this.props.squareSize
+      size: this.props.squareSize,
+      onClick: this.props.squareClicked
     };
     square.key = "sq-R" + square.row + "xC" + square.column;
     return square;
@@ -26,8 +29,29 @@ export default class MemoryRow extends Component {
     }
   }
 
+  getSquareState(stateArray, column){
+    if(stateArray===undefined)return;
+    return stateArray.includes(column);
+  }
+
+  isSquareSelected(column) {
+    return this.getSquareState(this.props.selectedSquares, column);
+  }
+
+  isSquareChosen(column) {
+    return this.getSquareState(this.props.chosenSquares, column);
+  }
+
   renderSquare(squareObject) {
-    return <MemorySquare size={this.props.squareSize} {...squareObject} />;
+    let isSelected = this.isSquareSelected(squareObject.column);
+    let isChosen = this.isSquareChosen(squareObject.column);
+    return (
+      <MemorySquare
+        isSelected={isSelected}
+        isChosen={isChosen}
+        {...squareObject}
+      />
+    );
   }
 
   render() {
@@ -36,21 +60,6 @@ export default class MemoryRow extends Component {
         {this.squares.map(s => this.renderSquare(s))}
       </div>
     );
-  }
-
-  havePropsChanged(oldProps, newProps){
-      return (oldProps.rowNumber !== newProps.rowNumber) ||
-      (oldProps.squareSize !== newProps.squareSize) ||
-      (oldProps.rowSize !== newProps.rowSize);
-  }
-
-  shouldComponentUpdate(newProps, newState){
-    console.log("row will update");
-    return this.havePropsChanged(this.props, newProps);
-  }
-
-  componentWillUpdate() {
-    this.generateSquares();
   }
 
   componentWillMount() {

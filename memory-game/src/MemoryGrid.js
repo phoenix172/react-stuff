@@ -5,12 +5,19 @@ import MemoryRow from "./MemoryRow.js";
 export default class MemoryGrid extends Component {
   static propTypes = {
     gridSize: PropTypes.number.isRequired,
-    squareSize: PropTypes.string.isRequired
-  };
-
-  static defaultProps = {
-    squareSize: "50px",
-    gridSize: 5
+    squareSize: PropTypes.string.isRequired,
+    selectedSquares: PropTypes.arrayOf(
+      PropTypes.shape({
+        row: PropTypes.number,
+        column: PropTypes.number
+      })
+    ),
+    chosenSquares: PropTypes.arrayOf(
+      PropTypes.shape({
+        row: PropTypes.number,
+        column: PropTypes.number
+      })
+    )
   };
 
   createRow(rowNumber) {
@@ -18,7 +25,8 @@ export default class MemoryGrid extends Component {
       rowNumber: rowNumber,
       rowSize: this.props.gridSize,
       key: "row" + rowNumber,
-      squareSize: this.props.squareSize
+      squareSize: this.props.squareSize,
+      squareClicked: this.props.squareClicked
     };
   }
 
@@ -29,34 +37,37 @@ export default class MemoryGrid extends Component {
     }
   }
 
+  getForRow(squareStateArray, row) {
+    if(squareStateArray === undefined)return;
+    return squareStateArray.filter(x => x.row === row.rowNumber).map(x => x.column);
+  }
+
+  getSelectedSquares(row){
+    return this.getForRow(this.props.selectedSquares, row);
+  }
+
+  getChosenSquares(row){
+    return this.getForRow(this.props.chosenSquares, row);
+  }
+
   renderRow(row) {
-    return <MemoryRow {...row} />;
+    let selectedSquares = this.getSelectedSquares(row);
+    let chosenSquares = this.getChosenSquares(row);
+    return (
+      <MemoryRow
+        selectedSquares={selectedSquares}
+        chosenSquares={chosenSquares}
+        {...row}
+      />
+    );
   }
 
   render() {
     return (
       <div className="memoryBoard">
-        {this.rows.map(this.renderRow)}
+        {this.rows.map((row)=>this.renderRow(row))}
       </div>
     );
-  }
-  
-  havePropsChanged(oldProps, newProps) {
-    return (
-      oldProps.gridSize !== newProps.gridSize ||
-      oldProps.squareSize !== newProps.squareSize
-    );
-  }
-
-  shouldComponentUpdate(newProps, newState) {
-    debugger;
-    return this.havePropsChanged(this.props, newProps);
-  }
-
-  componentWillUpdate() {
-    console.log("grid will update");
-    this.generateRows();
-    console.log(this.rows);
   }
 
   componentWillMount() {
